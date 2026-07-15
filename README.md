@@ -1,8 +1,8 @@
 # Linux dotfiles
 
-Personal Bash, Git, and Readline configuration for Ubuntu. This repository is
-authored like a normal Git repository and installed as a bare repository whose
-work tree is the home directory.
+Personal Bash, Git, Readline, Vim, and tmux configuration for Ubuntu. This
+repository is authored like a normal Git repository and installed as a bare
+repository whose work tree is the home directory.
 
 It borrows the modular shell layout from
 [Mathias Bynens' dotfiles](https://github.com/mathiasbynens/dotfiles), but
@@ -80,11 +80,23 @@ Start with the existing modules under `.config/bash/` and keep each concern in
 its corresponding file. Guard optional programs with `command -v`, and keep
 distro- or host-specific values in `local.bash`.
 
+## Vim and tmux
+
+Vim uses the bundled Solarized Dark colorscheme, relative line numbers, visible
+whitespace, persistent undo, and `,` as its leader key. Use `,ss` to strip
+trailing whitespace and `,W` to write the current file through `sudo`. System
+clipboard integration is enabled only when the installed Vim supports it.
+
+tmux uses `Ctrl+A` instead of `Ctrl+B` as its prefix. Press `Ctrl+A Ctrl+A` to
+send a literal prefix to the active program and `Ctrl+A r` to reload
+`.tmux.conf`.
+
 Validate changes before pushing:
 
 ```bash
 ./tests/smoke.sh
 ```
 
-This repository intentionally does not install packages or manage Vim, tmux,
-desktop applications, or operating-system preferences.
+This repository intentionally does not install packages or manage desktop
+applications or operating-system preferences. Git, Bash, Vim, and tmux must be
+installed separately.

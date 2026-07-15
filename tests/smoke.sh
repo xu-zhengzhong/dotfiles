@@ -45,7 +45,56 @@ cat > "$home/.config/bash/local.bash" <<'EOF'
 export DOTFILES_TEST_LOCAL=loaded
 EOF
 result=$(HOME="$home" bash --noprofile --rcfile "$home/.bashrc" -ic \
-	'type mkcd >/dev/null; alias ll >/dev/null; alias dotfiles >/dev/null; path >/dev/null; printf "%s" "$DOTFILES_TEST_LOCAL"' 2>/dev/null)
+	'type mkcd >/dev/null; alias ll >/dev/null; alias dotfiles >/dev/null; path >/dev/null; [[ $PS1 == *" at "* && $PS1 == *" in "* && $PS1 == *prompt_git* ]]; printf "%s" "$DOTFILES_TEST_LOCAL"' 2>/dev/null)
 [[ "$result" == loaded ]]
+
+prompt_repo="$tmp/prompt-repo"
+git -C "$tmp" init -q prompt-repo
+git -C "$prompt_repo" config user.name 'Dotfiles Test'
+git -C "$prompt_repo" config user.email 'dotfiles-test@example.invalid'
+printf 'tracked\n' > "$prompt_repo/tracked"
+git -C "$prompt_repo" add tracked
+git -C "$prompt_repo" commit -qm 'Initial prompt fixture'
+
+clean=$(cd "$prompt_repo" && TERM=dumb USER=tester bash -c \
+	'. "$1"; prompt_git "" ""' bash "$home/.config/bash/prompt.bash")
+[[ "$clean" == main ]]
+
+printf 'staged\n' >> "$prompt_repo/tracked"
+git -C "$prompt_repo" add tracked
+printf 'unstaged\n' >> "$prompt_repo/tracked"
+printf 'untracked\n' > "$prompt_repo/untracked"
+dirty=$(cd "$prompt_repo" && TERM=dumb USER=tester bash -c \
+	'. "$1"; prompt_git "" ""' bash "$home/.config/bash/prompt.bash")
+[[ "$dirty" == 'main [+!?]' ]]
+
+git -C "$prompt_repo" stash push -qu
+stashed=$(cd "$prompt_repo" && TERM=dumb USER=tester bash -c \
+	'. "$1"; prompt_git "" ""' bash "$home/.config/bash/prompt.bash")
+[[ "$stashed" == 'main [$]' ]]
+
+git -C "$prompt_repo" checkout --detach -q
+detached=$(cd "$prompt_repo" && TERM=dumb USER=tester bash -c \
+	'. "$1"; prompt_git "" ""' bash "$home/.config/bash/prompt.bash")
+[[ -n "$detached" && "$detached" != main* && "$detached" == *'[$]' ]]
+
+styles=$(TERM=dumb USER=root SSH_TTY=/dev/pts/test bash -c \
+	'. "$1"; [[ $user_style == "$red" && $host_style == "${bold}${red}" ]] && printf ok' \
+	bash "$home/.config/bash/prompt.bash")
+[[ "$styles" == ok ]]
+
+rm -rf "$home/.vim/backups" "$home/.vim/swaps" "$home/.vim/undo"
+HOME="$home" vim --cmd "set runtimepath^=$home/.vim" -Nu "$home/.vimrc" \
+	-n -es -i NONE \
+	-c 'if !exists("g:colors_name") || g:colors_name !=# "solarized" | cquit | endif' \
+	-c 'qall'
+[[ -d "$home/.vim/backups" && -d "$home/.vim/swaps" && -d "$home/.vim/undo" ]]
+
+if command -v tmux >/dev/null 2>&1; then
+	tmux_socket="dotfiles-test-$$"
+	tmux -L "$tmux_socket" -f "$home/.tmux.conf" new-session -d
+	[[ $(tmux -L "$tmux_socket" show-options -gv prefix) == C-a ]]
+	tmux -L "$tmux_socket" kill-server
+fi
 
 printf 'Smoke test passed\n'
