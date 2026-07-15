@@ -1,38 +1,54 @@
+# Keep identity, signing keys, and machine-specific Git settings untracked.
 [include]
 	path = ~/.config/git/local.gitconfig
 
+# Short forms for frequently used status, history, and diff commands.
 [alias]
+	# Show the current branch and a compact working-tree summary.
 	s = status --short --branch
+	# Show a decorated graph of the latest 20 commits.
 	l = log --graph --decorate --oneline -20
+	# Compare unstaged or staged changes, respectively.
 	d = diff
 	ds = diff --staged
+	# Inspect every local and remote branch.
 	branches = branch --all
+	# List aliases defined by the effective Git configuration.
 	aliases = config --get-regexp ^alias[.]
 
+# Put the branches with the newest commits first.
 [branch]
 	sort = -committerdate
 
+# Enable color when output is connected to a capable terminal.
 [color]
 	ui = auto
 
+# Apply repository-independent ignore patterns from one tracked file.
 [core]
 	excludesFile = ~/.config/git/ignore
 
+# Produce readable diffs when lines or blocks move substantially.
 [diff]
 	algorithm = histogram
 
+# Remove remote-tracking references that disappeared from the remote.
 [fetch]
 	prune = true
 
+# Use the modern default branch name for newly initialized repositories.
 [init]
 	defaultBranch = main
 
+# Refuse pulls that would create an implicit merge commit.
 [pull]
 	ff = only
 
+# Publish a new branch to its same-named upstream on the first push.
 [push]
 	autoSetupRemote = true
 	default = simple
 
+# Remember conflict resolutions and reuse them when conflicts recur.
 [rerere]
 	enabled = true

@@ -1,5 +1,8 @@
+# Temporary files created by terminal editors.
 *~
 *.swp
 *.swo
+
+# Metadata written by macOS and Windows when repositories cross platforms.
 .DS_Store
 Thumbs.db

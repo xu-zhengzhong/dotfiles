@@ -1,12 +1,30 @@
+# Complete file names without requiring the user to match letter case.
 set completion-ignore-case on
+
+# Show choices immediately when a prefix has more than one possible match.
 set show-all-if-ambiguous on
+
+# Append a slash when a completed symbolic link points to a directory.
 set mark-symlinked-directories on
+
+# Require an explicit leading dot before completing hidden files.
 set match-hidden-files off
+
+# Print completion choices as one list instead of through a pager.
 set page-completions off
+
+# Ask before printing an unusually large number of completion choices.
 set completion-query-items 200
+
+# Mark file types in completion output in the same style as `ls -F`.
 set visible-stats on
+
+# Consider text after the cursor instead of duplicating a completed suffix.
 set skip-completed-text on
 
+# Search history using the command prefix already typed at the prompt.
 "\e[A": history-search-backward
 "\e[B": history-search-forward
+
+# Use Alt+Delete to remove the word after the cursor.
 "\e[3;3~": kill-word

@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Allow tests or advanced users to target another bare repository and work tree.
 git_dir=${DOTFILES_GIT_DIR:-"$HOME/.dotfiles"}
 work_tree=${DOTFILES_WORK_TREE:-"$HOME"}
+
+# Name backups by installation time, adding a suffix for same-second runs.
 backup_base="$work_tree/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 backup_root=$backup_base
 backup_suffix=0
@@ -13,10 +16,12 @@ while [[ -e "$backup_root" ]]; do
 	backup_root="$backup_base-$backup_suffix"
 done
 
+# Run Git against the bare repository while resolving paths from its work tree.
 dotfiles() {
 	git -C "$work_tree" --git-dir="$git_dir" --work-tree="$work_tree" "$@"
 }
 
+# Fail before moving files when the repository is missing or has no commit.
 if [[ ! -d "$git_dir" ]]; then
 	printf 'dotfiles-bootstrap: Git directory not found: %s\n' "$git_dir" >&2
 	exit 1
@@ -28,6 +33,7 @@ if ! git --git-dir="$git_dir" rev-parse --verify HEAD >/dev/null 2>&1; then
 fi
 
 # Back up both the old index and new HEAD so updates also handle removed files.
+# Null delimiters preserve tracked paths containing whitespace or newlines.
 while IFS= read -r -d '' path; do
 	target="$work_tree/$path"
 	if [[ -e "$target" || -L "$target" ]]; then
@@ -45,8 +51,12 @@ done < <(
 
 # Reset the index and checked-out files only after every managed path is safe.
 dotfiles read-tree --reset -u HEAD
+
+# A home-directory work tree contains many unrelated files; hide them from
+# status unless the user explicitly stages a path.
 dotfiles config status.showUntrackedFiles no
 
+# Summarize the result and make the backup location easy to recover from.
 printf 'Dotfiles checked out into %s\n' "$work_tree"
 if (( backed_up )); then
 	printf 'Previous files are in %s\n' "$backup_root"
