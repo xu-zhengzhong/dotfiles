@@ -3,7 +3,8 @@ set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
-if [[ ! -d "$repo_root/.git" ]]; then
+if ! checkout_root=$(git -C "$repo_root" rev-parse --show-toplevel 2>/dev/null) ||
+	[[ "$checkout_root" != "$repo_root" ]]; then
 	printf 'smoke.sh: run this test from the normal authoring checkout, not the installed bare work tree\n' >&2
 	exit 2
 fi
