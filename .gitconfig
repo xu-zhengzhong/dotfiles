@@ -1,0 +1,38 @@
+[include]
+	path = ~/.config/git/local.gitconfig
+
+[alias]
+	s = status --short --branch
+	l = log --graph --decorate --oneline -20
+	d = diff
+	ds = diff --staged
+	branches = branch --all
+	aliases = config --get-regexp ^alias[.]
+
+[branch]
+	sort = -committerdate
+
+[color]
+	ui = auto
+
+[core]
+	excludesFile = ~/.config/git/ignore
+
+[diff]
+	algorithm = histogram
+
+[fetch]
+	prune = true
+
+[init]
+	defaultBranch = main
+
+[pull]
+	ff = only
+
+[push]
+	autoSetupRemote = true
+	default = simple
+
+[rerere]
+	enabled = true

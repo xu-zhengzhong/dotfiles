@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+git_dir=${DOTFILES_GIT_DIR:-"$HOME/.dotfiles"}
+work_tree=${DOTFILES_WORK_TREE:-"$HOME"}
+backup_base="$work_tree/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
+backup_root=$backup_base
+backup_suffix=0
+backed_up=0
+
+while [[ -e "$backup_root" ]]; do
+	((backup_suffix += 1))
+	backup_root="$backup_base-$backup_suffix"
+done
+
+dotfiles() {
+	git --git-dir="$git_dir" --work-tree="$work_tree" "$@"
+}
+
+if [[ ! -d "$git_dir" ]]; then
+	printf 'dotfiles-bootstrap: Git directory not found: %s\n' "$git_dir" >&2
+	exit 1
+fi
+
+if ! git --git-dir="$git_dir" rev-parse --verify HEAD >/dev/null 2>&1; then
+	printf 'dotfiles-bootstrap: repository has no commit to check out\n' >&2
+	exit 1
+fi
+
+while IFS= read -r -d '' path; do
+	target="$work_tree/$path"
+	if [[ -e "$target" || -L "$target" ]]; then
+		mkdir -p "$backup_root/$(dirname "$path")"
+		mv -- "$target" "$backup_root/$path"
+		printf 'Backed up %s\n' "$path"
+		backed_up=1
+	fi
+done < <(git --git-dir="$git_dir" ls-tree -rz --name-only HEAD)
+
+dotfiles checkout
+dotfiles config status.showUntrackedFiles no
+
+printf 'Dotfiles checked out into %s\n' "$work_tree"
+if (( backed_up )); then
+	printf 'Previous files are in %s\n' "$backup_root"
+fi
+printf 'Start a new login shell with: exec bash -l\n'
