@@ -2,6 +2,12 @@
 set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+
+if [[ ! -d "$repo_root/.git" ]]; then
+	printf 'smoke.sh: run this test from the normal authoring checkout, not the installed bare work tree\n' >&2
+	exit 2
+fi
+
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 seed="$tmp/seed"
