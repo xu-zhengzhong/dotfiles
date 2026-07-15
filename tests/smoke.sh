@@ -41,6 +41,26 @@ grep -qx 'original bashrc' "$backup/.bashrc"
 [[ -f "$home/.config/bash/aliases.bash" ]]
 [[ $(git --git-dir="$home/.dotfiles" config status.showUntrackedFiles) == no ]]
 
+# Exercise the installed-repository update path, including a removed file.
+printf '\n# updated fixture\n' >> "$seed/.bashrc"
+git -C "$seed" rm -q .inputrc
+printf 'updated\n' > "$seed/.update-marker"
+git -C "$seed" add .bashrc .update-marker
+git -C "$seed" commit -qm 'Update fixture'
+git -C "$seed" push -q "$home/.dotfiles" main
+
+printf 'locally modified bashrc\n' > "$home/.bashrc"
+HOME="$home" git --git-dir="$home/.dotfiles" show HEAD:.local/bin/dotfiles-bootstrap |
+	HOME="$home" bash
+
+update_backup=$(find "$home" -maxdepth 1 -type d -name '.dotfiles-backup-*' -print |
+	sort | tail -n 1)
+grep -qx 'locally modified bashrc' "$update_backup/.bashrc"
+[[ -f "$update_backup/.inputrc" ]]
+grep -q '^# updated fixture$' "$home/.bashrc"
+[[ -f "$home/.update-marker" && ! -e "$home/.inputrc" ]]
+[[ -z $(git -C "$home" --git-dir="$home/.dotfiles" --work-tree="$home" status --short) ]]
+
 cat > "$home/.config/bash/local.bash" <<'EOF'
 export DOTFILES_TEST_LOCAL=loaded
 EOF
