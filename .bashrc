@@ -12,6 +12,7 @@ for file in \
 	"$HOME/.config/bash/aliases.bash" \
 	"$HOME/.config/bash/functions.bash" \
 	"$HOME/.config/bash/prompt.bash" \
+	"$HOME/.config/bash/proxy.bash" \
 	"$HOME/.config/bash/local.bash"
 do
 	[[ -r "$file" ]] && . "$file"
