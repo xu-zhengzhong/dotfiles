@@ -33,10 +33,11 @@ prompt_git() {
 	printf '%s%s%s%s' "$1" "$branch_name" "$2" "$status"
 }
 
-# Build the Solarized palette from terminfo when colors are available. Do not
-# rewrite TERM: the terminal emulator should provide the correct value.
+# Build the Solarized palette from terminfo when 256 colors are available.
+# Do not rewrite TERM: the terminal emulator or tmux should provide it.
+prompt_colors=0
 if [[ ${TERM:-} != dumb ]] && command -v tput >/dev/null 2>&1 &&
-	tput setaf 1 >/dev/null 2>&1; then
+	prompt_colors=$(tput colors 2>/dev/null) && (( prompt_colors >= 256 )); then
 	bold=$(tput bold)
 	reset=$(tput sgr0)
 	black=$(tput setaf 0)
@@ -50,7 +51,7 @@ if [[ ${TERM:-} != dumb ]] && command -v tput >/dev/null 2>&1 &&
 	white=$(tput setaf 15)
 	yellow=$(tput setaf 136)
 else
-	# Keep the prompt readable on terminals without usable terminfo.
+	# Keep the prompt readable on terminals without usable 256-color terminfo.
 	bold=''
 	reset='\e[0m'
 	black='\e[1;30m'
@@ -64,6 +65,7 @@ else
 	white='\e[1;37m'
 	yellow='\e[1;33m'
 fi
+unset prompt_colors
 
 # Highlight the user name when logged in as root.
 if [[ ${USER:-} == root ]]; then
